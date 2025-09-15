@@ -4,7 +4,7 @@ const Member = require('../models/member');
 const auth = require('../middleware/auth');
 const router = new express.Router();
 
-router.post('/teams', auth, async (req, res) => {
+router.post('', auth, async (req, res) => {
     const details = req.body;
     if (req.body.leader) {
         const leader = await Member.findOne({ IDF_number: req.body.leader });
@@ -22,7 +22,7 @@ router.post('/teams', auth, async (req, res) => {
     }
 });
 
-router.get('/teams', auth, async (req, res) => {
+router.get('', auth, async (req, res) => {
     try {
         const teams = await Team.find({});
         if (!teams) {
@@ -34,7 +34,7 @@ router.get('/teams', auth, async (req, res) => {
     }
 });
 
-router.get('/teams/:id', auth, async (req, res) => {
+router.get('/:id', auth, async (req, res) => {
     try {
         const team = await Team.findById(req.params.id);
         if (!team) {
@@ -46,7 +46,7 @@ router.get('/teams/:id', auth, async (req, res) => {
     }
 });
 
-router.get('/teams/getLeader/:id', auth, async (req, res) => {
+router.get('/getLeader/:id', auth, async (req, res) => {
     try {
         const team = await Team.findById(req.params.id);
         if (!team) {
@@ -62,20 +62,20 @@ router.get('/teams/getLeader/:id', auth, async (req, res) => {
     }
 });
 
-router.get('/teams/membersCount/:id', auth, async (req, res) => {
-    try {
-        const team = await Team.findById(req.params.id);
-        if (!team) {
-            return res.status(400).send();
-        }
-        const count = await Member.countDocuments({ team: req.params.id });
-        res.send({ count });
-    } catch (error) {
-        res.status(500).send(error);
+router.get("/membersCount/:id", auth, async (req, res) => {
+  try {
+    const team = await Team.findById(req.params.id);
+    if (!team) {
+        return res.status(400).send();
     }
+    await team.populate("members");
+    res.send(team.members.length);
+  } catch (error) {
+    res.status(500).send(error);
+  }
 });
 
-router.patch('/teams/:id', auth, async (req, res) => {
+router.patch('/:id', auth, async (req, res) => {
     const updates = Object.keys(req.body);
     const allowedUpdates = ['name', 'leader'];
     const isValidOperation = updates.every((update) =>
@@ -105,7 +105,7 @@ router.patch('/teams/:id', auth, async (req, res) => {
     }
 });
 
-router.delete('/teams/:id', auth, async (req, res) => {
+router.delete('/:id', auth, async (req, res) => {
     try {
         const team = await Team.findById(req.params.id);
         if (!team) {

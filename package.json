@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node src/index.js",
-    "dev": "nodemon src/index.js"
+    "start": "node -r dotenv/config src/index.js dotenv_config_path=./config/.env",
+    "dev": "nodemon -r dotenv/config src/index.js dotenv_config_path=./config/.env"
   },
   "keywords": [],
   "author": "",
@@ -15,9 +15,9 @@
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
+    "dotenv": "^17.2.2",
     "express": "^4.16.4",
     "jsonwebtoken": "^8.4.0",
-    "mongodb": "^4.1.0",
     "mongoose": "^6.5.2"
   }
 }

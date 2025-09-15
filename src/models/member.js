@@ -50,7 +50,7 @@ memberSchema.methods.toJSON = function () {
 
 memberSchema.methods.generateAuthToken = async function () {
     const member = this;
-    const token = jwt.sign({ _id: member._id.toString() }, 'youaremyfire');
+    const token = jwt.sign({ _id: member._id.toString() }, process.env.JWT_SECRET);
 
     member.tokens = member.tokens.concat({ token });
     await member.save();

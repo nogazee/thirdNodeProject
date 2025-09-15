@@ -4,7 +4,7 @@ const Member = require('../models/member');
 const auth = async (req, res, next) => {
     try {
         const token = req.header('Authorization').replace('Bearer ', '');
-        const decoded = jwt.verify(token, 'youaremyfire');
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
         const member = await Member.findOne({ _id: decoded._id, 'tokens.token': token });
         if (!member) {
             throw new Error();
