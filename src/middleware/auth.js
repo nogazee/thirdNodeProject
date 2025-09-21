@@ -17,4 +17,18 @@ const auth = async (req, res, next) => {
     }
 };
 
-module.exports = auth;
+const editPermission = async (req, res, next) => {
+    try {
+        if (!req.member.isLeader) {
+            throw new Error();
+        }
+        next();
+    } catch (error) {
+        res.status(401).send({ error: "unauthorized" });
+    }
+}
+
+module.exports = {
+    auth, 
+    editPermission
+};

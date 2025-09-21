@@ -9,6 +9,14 @@ const memberSchema = new mongoose.Schema({
         required: true,
         trim: true
     },
+    isLeader: {
+        type: Boolean,
+        default: false
+    },
+    enlistmentDate: {
+        type: Date,
+        required: true
+    },
     IDF_number: {
         type: Number,
         unique: true,

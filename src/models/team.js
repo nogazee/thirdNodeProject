@@ -22,7 +22,7 @@ teamSchema.virtual('members', {
 teamSchema.pre('remove', async function (next) {
     const team = this;
     await team.populate('members');
-    for (const member of members) {
+    for (const member of team.members) {
         member.set("team", undefined);
         await member.save();
     }
