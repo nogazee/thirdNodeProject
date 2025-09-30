@@ -2,6 +2,7 @@ const express = require('express');
 const Team = require('../models/team');
 const Member = require('../models/member');
 const { auth, editPermission } = require('../middleware/auth');
+const { StatusCodes } = require('http-status-codes');
 const router = new express.Router();
 
 router.post('', auth, async (req, res) => {
@@ -10,7 +11,7 @@ router.post('', auth, async (req, res) => {
         if (req.body.leader) {
             const leader = await Member.findOne({ IDF_number: req.body.leader });
             if (!leader) {
-                return res.status(400).send();
+                return res.status(StatusCodes.BAD_REQUEST).send();
             }
             details.leader = leader._id;
             leader.isLeader = true;
@@ -18,9 +19,9 @@ router.post('', auth, async (req, res) => {
         }
         const team = new Team(details);
         await team.save();
-        res.status(201).send(team);
+        res.status(StatusCodes.CREATED).send(team);
     } catch (error) {
-        res.status(400).send(error);
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).send(error);
     }
 });
 
@@ -28,11 +29,11 @@ router.get('', auth, async (req, res) => {
     try {
         const teams = await Team.find({});
         if (!teams) {
-            return res.status(404).send();
+            return res.status(StatusCodes.NOT_FOUND).send();
         }
         res.send(teams);
     } catch (error) {
-        res.status(500).send(error);
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).send(error);
     }
 });
 
@@ -40,15 +41,15 @@ router.get('/:id/getLeader', auth, async (req, res) => {
     try {
         const team = await Team.findById(req.params.id);
         if (!team) {
-            return res.status(400).send();
+            return res.status(StatusCodes.BAD_REQUEST).send("Team not found.");
         }
         if (!team.leader) {
-            return res.send('There is no leader for this team.');
+            return res.status(StatusCodes.NOT_FOUND).send('There is no leader for this team.');
         }
         await team.populate('leader');
         res.send(team.leader);
     } catch (error) {
-        res.status(500).send(error);
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).send(error);
     }
 });
 
@@ -56,43 +57,12 @@ router.get("/:id/membersCount", auth, async (req, res) => {
     try {
         const team = await Team.findById(req.params.id);
         if (!team) {
-            return res.status(400).send();
+            return res.status(StatusCodes.BAD_REQUEST).send();
         }
         await team.populate("members");
         res.send(team.members.length.toString());
     } catch (error) {
-        res.status(500).send(error);
-    }
-});
-
-router.get("/teamSizeSortedLeaders", auth, async (req, res) => {
-    try {
-        const sort = {};
-        if (req.query.sortBy) {
-            sort.size = req.query.sortBy === "desc" ? -1 : 1;
-        }
-        const teams = await Team.aggregate([
-            {
-                $lookup: {
-                    from: "members",
-                    localField: "_id",
-                    foreignField: "team",
-                    as: "members"
-                }
-            },
-            {
-                $addFields: {
-                    size: { $size: "$members" }
-                }
-            },
-            {
-                $sort: sort
-            }
-        ]);
-        const leaders = await Promise.all(teams.map(async (team) => await Member.findById(team.leader)));
-        res.send(leaders);
-    } catch (error) {
-        res.status(500).send(error);
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).send(error);
     }
 });
 
@@ -100,11 +70,11 @@ router.get('/:id', auth, async (req, res) => {
     try {
         const team = await Team.findById(req.params.id);
         if (!team) {
-            return res.status(404).send();
+            return res.status(StatusCodes.NOT_FOUND).send();
         }
         res.send(team);
     } catch (error) {
-        res.status(500).send(error);
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).send(error);
     }
 });
 
@@ -115,18 +85,18 @@ router.patch('/:id', [auth, editPermission], async (req, res) => {
         allowedUpdates.includes(update)
     );
     if (!isValidOperation) {
-        return res.status(400).send({ error: "Invalid updates!" });
+        return res.status(StatusCodes.BAD_REQUEST).send({ error: "Invalid updates!" });
     }
     try {
         const team = await Team.findById(req.params.id);
         if (!team) {
-            return res.status(404).send();
+            return res.status(StatusCodes.NOT_FOUND).send();
         }
         const details = req.body;
         if (req.body.leader) {
             const leader = await Member.findOne({ IDF_number: req.body.leader });
             if (!leader) {
-                return res.status(400).send();
+                return res.status(StatusCodes.BAD_REQUEST).send();
             }
             if (team.leader && !team.leader.equals(leader._id)) {
                 await team.populate('leader');
@@ -142,7 +112,7 @@ router.patch('/:id', [auth, editPermission], async (req, res) => {
         await team.save();
         res.send(team);
     } catch (error) {
-        res.status(400).send(error);
+        res.status(StatusCodes.BAD_REQUEST).send(error);
     }
 });
 
@@ -150,12 +120,12 @@ router.delete('/:id', [auth, editPermission], async (req, res) => {
     try {
         const team = await Team.findById(req.params.id);
         if (!team) {
-            return res.status(404).send();
+            return res.status(StatusCodes.NOT_FOUND).send();
         }
         await team.remove();
         res.send(team);
     } catch (error) {
-        res.status(500).send();
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).send();
     }
 });
 

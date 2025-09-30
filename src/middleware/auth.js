@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const Member = require('../models/member');
+const { StatusCodes } = require('http-status-codes');
 
 const auth = async (req, res, next) => {
     try {
@@ -13,18 +14,18 @@ const auth = async (req, res, next) => {
         req.member = member;
         next();
     } catch (error) {
-        res.status(401).send({ error: 'Please authenticate.' });
+        res.status(StatusCodes.UNAUTHORIZED).send({ error: 'Please authenticate.' });
     }
 };
 
-const editPermission = async (req, res, next) => {
+const editPermission = (req, res, next) => {
     try {
         if (!req.member.isLeader) {
-            throw new Error();
+            res.status(StatusCodes.UNAUTHORIZED).send();
         }
         next();
     } catch (error) {
-        res.status(401).send({ error: "unauthorized" });
+        res.status(StatusCodes.UNAUTHORIZED).send();
     }
 }
 
